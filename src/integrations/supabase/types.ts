@@ -9,7 +9,118 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      galangan: {
+        Row: {
+          created_at: string
+          id: string
+          jenis_kapal: string
+          nama_kapal: string
+          nilai_kontrak: number
+          pemilik: string
+          status: string
+          tanggal_mulai: string
+          tanggal_target: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          jenis_kapal: string
+          nama_kapal: string
+          nilai_kontrak?: number
+          pemilik: string
+          status?: string
+          tanggal_mulai: string
+          tanggal_target?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          jenis_kapal?: string
+          nama_kapal?: string
+          nilai_kontrak?: number
+          pemilik?: string
+          status?: string
+          tanggal_mulai?: string
+          tanggal_target?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      lunas: {
+        Row: {
+          created_at: string
+          galangan_id: string | null
+          id: string
+          keterangan: string | null
+          sisa_bayar: number | null
+          tanggal_lunas: string
+          total_bayar: number
+        }
+        Insert: {
+          created_at?: string
+          galangan_id?: string | null
+          id?: string
+          keterangan?: string | null
+          sisa_bayar?: number | null
+          tanggal_lunas?: string
+          total_bayar: number
+        }
+        Update: {
+          created_at?: string
+          galangan_id?: string | null
+          id?: string
+          keterangan?: string | null
+          sisa_bayar?: number | null
+          tanggal_lunas?: string
+          total_bayar?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lunas_galangan_id_fkey"
+            columns: ["galangan_id"]
+            isOneToOne: false
+            referencedRelation: "galangan"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      setor: {
+        Row: {
+          created_at: string
+          galangan_id: string | null
+          id: string
+          jumlah: number
+          keterangan: string | null
+          tanggal_setor: string
+        }
+        Insert: {
+          created_at?: string
+          galangan_id?: string | null
+          id?: string
+          jumlah: number
+          keterangan?: string | null
+          tanggal_setor?: string
+        }
+        Update: {
+          created_at?: string
+          galangan_id?: string | null
+          id?: string
+          jumlah?: number
+          keterangan?: string | null
+          tanggal_setor?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "setor_galangan_id_fkey"
+            columns: ["galangan_id"]
+            isOneToOne: false
+            referencedRelation: "galangan"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
