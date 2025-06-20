@@ -7,6 +7,16 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -42,13 +52,3 @@ jobs:
       id: deployment
       uses: actions/deploy-pages@v4
       if: github.ref == 'refs/heads/main'
-
-  permissions:
-    contents: read
-    pages: write
-    id-token: write
-
-  # Allow only one concurrent deployment
-  concurrency:
-    group: "pages"
-    cancel-in-progress: false
