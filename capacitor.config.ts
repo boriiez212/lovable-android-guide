@@ -15,7 +15,12 @@ const config: CapacitorConfig = {
       keystorePath: undefined,
       keystoreAlias: undefined,
     }
-  }
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 3000,
+    },
+  },
 };
 
 export default config;
