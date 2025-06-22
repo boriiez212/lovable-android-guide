@@ -28,16 +28,14 @@ jobs:
 
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
-      with:
-        api-level: 34
-        build-tools: 34.0.0
-        cmake-version: 3.22.1
 
-    - name: Accept Android SDK licenses
+    - name: Install Android SDK components
       run: |
-        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --update
         $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-34"
         $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;34.0.0"
+        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools"
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
 
     - name: Install dependencies
       run: npm ci
@@ -51,20 +49,23 @@ jobs:
     - name: Install Capacitor CLI globally
       run: npm install -g @capacitor/cli@latest
 
-    - name: Initialize Capacitor (if needed)
+    - name: Verify Capacitor config exists
       run: |
         if [ ! -f "capacitor.config.ts" ]; then
-          npx cap init
+          echo "Error: capacitor.config.ts not found"
+          exit 1
         fi
+        cat capacitor.config.ts
 
-    - name: Remove existing Android platform (if exists)
+    - name: Clean previous Android platform
       run: |
-        if [ -d "android" ]; then
-          rm -rf android
-        fi
+        rm -rf android || true
+        rm -rf node_modules/.capacitor || true
 
     - name: Add Android platform
-      run: npx cap add android --confirm
+      run: |
+        npx cap add android
+        ls -la
 
     - name: Copy web assets to native project
       run: npx cap copy android
@@ -79,6 +80,7 @@ jobs:
       run: |
         cd android
         chmod +x ./gradlew
+        ls -la
 
     - name: Clean and Build Android APK
       run: |
