@@ -20,14 +20,21 @@ jobs:
         node-version: '20'
         cache: 'npm'
 
-    - name: Setup Java
+    - name: Setup Java 17
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '18'
+        java-version: '17'
 
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
+      with:
+        api-level: 33
+        build-tools: 33.0.0
+
+    - name: Accept Android SDK licenses
+      run: |
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || echo "SDK licenses accepted"
 
     - name: Install dependencies
       run: npm ci
@@ -38,31 +45,34 @@ jobs:
         VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
         VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
-    - name: Install Capacitor CLI
-      run: npm install -g @capacitor/cli
+    - name: Install Capacitor CLI globally
+      run: npm install -g @capacitor/cli@latest
 
     - name: Add Android platform
-      run: npx cap add android
+      run: npx cap add android --confirm
 
     - name: Copy web assets to native project
       run: npx cap copy android
 
+    - name: Update Capacitor
+      run: npx cap update android
+
     - name: Sync Capacitor
       run: npx cap sync android
 
-    - name: Set Android SDK permissions
-      run: |
-        chmod +x $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager
-        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || echo "SDK licenses accepted"
-
-    - name: Build Android APK
+    - name: Grant execute permissions to gradlew
       run: |
         cd android
         chmod +x ./gradlew
+
+    - name: Clean and Build Android APK
+      run: |
+        cd android
         ./gradlew clean
-        ./gradlew assembleDebug --stacktrace --info
+        ./gradlew assembleDebug --no-daemon --stacktrace
       env:
         ANDROID_HOME: /usr/local/lib/android/sdk
+        JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.13-11/x64
 
     - name: Upload APK as artifact
       uses: actions/upload-artifact@v4
@@ -73,17 +83,28 @@ jobs:
 
     - name: Create Release
       if: github.ref == 'refs/heads/main'
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: android-v${{ github.run_number }}
         name: Android Release v${{ github.run_number }}
         files: android/app/build/outputs/apk/debug/app-debug.apk
         generate_release_notes: true
         body: |
-          🤖 Automated Android APK build
+          🤖 **Android APK Build Automated**
           
-          📱 Download the APK file below to install on your Android device
+          📱 **Download Instructions:**
+          1. Download the APK file below
+          2. Transfer to your Android device
+          3. Enable "Install from unknown sources" in Android settings
+          4. Install the APK
           
-          ⚠️ Make sure to enable "Install from unknown sources" in your Android settings
+          ⚡ **Features:**
+          - Built with Capacitor
+          - Hot reload enabled for development
+          - Native Android capabilities
+          
+          🔧 **Technical Info:**
+          - Build Number: ${{ github.run_number }}
+          - Commit: ${{ github.sha }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
