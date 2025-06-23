@@ -9,7 +9,17 @@ const config: CapacitorConfig = {
     url: 'https://f89f4696-9f78-4249-94ad-321730c491c7.lovableproject.com?forceHideBadge=true',
     cleartext: true
   },
-  bundledWebRuntime: false
+  bundledWebRuntime: false,
+  android: {
+    buildOptions: {
+      keystorePath: undefined,
+      keystoreAlias: undefined,
+      keystoreAliasPassword: undefined,
+      keystorePassword: undefined,
+      releaseType: 'AAB',
+      signingType: 'apksigner'
+    }
+  }
 };
 
 export default config;
