@@ -50,34 +50,37 @@ jobs:
     - name: Sync Capacitor
       run: npx cap sync android
 
-    - name: Set Java compatibility in Gradle
+    - name: Configure Gradle for Java 17
       run: |
         cd android
         echo "org.gradle.java.home=$JAVA_HOME" >> gradle.properties
         echo "android.useAndroidX=true" >> gradle.properties
         echo "android.enableJetifier=true" >> gradle.properties
         echo "org.gradle.jvmargs=-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> gradle.properties
+        echo "org.gradle.daemon=true" >> gradle.properties
+        echo "org.gradle.configureondemand=true" >> gradle.properties
+        echo "org.gradle.parallel=true" >> gradle.properties
         
-        # Set Java version in build.gradle
+        # Update build.gradle for Java 17 compatibility
+        sed -i 's/compileSdk [0-9]*/compileSdk 33/g' app/build.gradle
+        sed -i 's/targetSdk [0-9]*/targetSdk 33/g' app/build.gradle
         sed -i 's/JavaVersion.VERSION_1_8/JavaVersion.VERSION_17/g' app/build.gradle
         sed -i 's/jvmTarget = "1.8"/jvmTarget = "17"/g' app/build.gradle
         
-        # Ensure compileSdk and targetSdk are compatible
-        sed -i 's/compileSdk [0-9]*/compileSdk 33/g' app/build.gradle
-        sed -i 's/targetSdk [0-9]*/targetSdk 33/g' app/build.gradle
+        # Ensure proper Java compatibility in build.gradle
+        if ! grep -q "compileOptions" app/build.gradle; then
+          sed -i '/android {/a\\n    compileOptions {\n        sourceCompatibility JavaVersion.VERSION_17\n        targetCompatibility JavaVersion.VERSION_17\n    }\n' app/build.gradle
+        fi
 
     - name: Make gradlew executable
       run: chmod +x android/gradlew
 
-    - name: Clean before build
+    - name: Clean Gradle cache and build
       run: |
         cd android
-        ./gradlew clean
-
-    - name: Build Android APK
-      run: |
-        cd android
-        ./gradlew assembleDebug --stacktrace --info
+        export JAVA_HOME=${{ env.JAVA_HOME }}
+        ./gradlew clean --no-daemon
+        ./gradlew assembleDebug --no-daemon --stacktrace
       env:
         JAVA_HOME: ${{ env.JAVA_HOME }}
 
